@@ -1,5 +1,5 @@
 # Global Values
-repoUrl: 'https://github.com/aws-samples/eks-blueprints-add-ons.git'
+repoUrl: 'https://github.com/YevheniiPokhvalii/eks-blueprints-add-ons.git'
 targetRevision: HEAD
 region: ''
 account: ''
@@ -7,6 +7,31 @@ clusterName: ''
 destinationServer: ''
 argoNamespace: ''
 argoProject: ''
+
+# Storage Class
+storageClass:
+  enable: true
+
+# EDP Values
+edp: 
+  enable: true 
+  createNamespace: true
+  targetRevision: "3.2.2"
+
+# Tekton Values
+tekton: 
+  enable: true 
+  createNamespace: true
+
+# Keycloak Values
+keycloak: 
+  enable: true 
+  createNamespace: true
+
+# Keycloak Postgres Values
+keycloakPostgresql: 
+  enable: true 
+  createNamespace: true
 
 # Agones Values
 agones: 

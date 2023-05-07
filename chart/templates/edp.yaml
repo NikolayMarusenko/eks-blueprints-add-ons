@@ -1,0 +1,108 @@
+{{- if and (.Values.edp) (.Values.edp.enable) -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: edp-test
+  namespace: {{ .Values.argoNamespace | default "argocd" }}
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argoProject | default "default" }}
+  destination:
+    server: {{ .Values.destinationServer | default "https://kubernetes.default.svc" }}
+    namespace: edp-test
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace={{ .Values.edp.createNamespace }}
+    retry:
+      limit: 1
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
+  source:
+    repoURL: https://epam.github.io/edp-helm-charts/stable
+    chart: edp-install
+    targetRevision: {{ .Values.edp.targetRevision }}
+    helm:
+      valueFiles:
+      - values.yaml
+      values: |
+        global:
+          edpName: edp-test
+          dnsWildCard: eks-test.aws.main.edp.projects.epam.com
+          webConsole:
+            url: https://3031312299A5C67092CA7B2983AD80C6.gr7.eu-central-1.eks.amazonaws.com
+          platform: kubernetes
+          kioskEnabled: false
+          admins: [yevhenii_pokhvalii@epam.com]
+          developers: [yevhenii_pokhvalii@epam.com]
+          gitProvider: gerrit
+          gerritSSHPort: "30222"
+          keycloakUrl: https://keycloak.eks-test.aws.main.edp.projects.epam.com
+
+        awsRegion: eu-central-1
+
+        argocd:
+          enabled: true
+          url: "https://argocd.eks-test.aws.main.edp.projects.epam.com"
+
+        dockerRegistry:
+          url: 093899590031.dkr.ecr.eu-central-1.amazonaws.com
+
+        kaniko:
+          roleArn: arn:aws:iam::093899590031:role/AWSIRSACoreSandboxEdpDeliveryKaniko
+
+        externalSecrets:
+          enabled: true
+          secretProvider:
+            aws:
+              role: arn:aws:iam::093899590031:role/eks-test-external-secrets-sa-irsa
+          manageEDPInstallSecrets: true
+
+        nexus-operator:
+          nexus:
+            storage:
+              size: 30Gi
+            requests:
+              cpu: 500m
+              memory: 3Gi
+
+        sonar-operator:
+          sonar:
+            storage:
+              database:
+                size: 1Gi
+            resources:
+              requests:
+                cpu: 500m
+                memory: 3Gi
+
+        codebase-operator:
+          resources:
+            limits:
+              cpu: '1'
+              memory: 1024Mi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          jira:
+            integration: false
+            name: "epam-jira"
+            apiUrl: "https://jiraeu-api.epam.com"
+            rootUrl: "https://jiraeu.epam.com"
+            credentialName: "epam-jira-user"
+
+        edp-headlamp:
+          config:
+            oidc:
+              enabled: true
+              clientID: "eks-sandbox"
+
+        edp-tekton:
+          kaniko:
+            roleArn: arn:aws:iam::093899590031:role/AWSIRSACoreSandboxEdpDeliveryKaniko
+
+{{- end -}}
